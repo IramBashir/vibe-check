@@ -6,7 +6,7 @@ import React, { useState } from 'react'
 import { Card, CardContent, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import type { MonetizationStrategy } from '@/types'
-import { BookOpen, CheckCircle, ChevronDown, ChevronRight, DollarSign, GraduationCap, Handshake, Heart, Lightbulb, Pin, ShoppingBag } from 'lucide-react'
+import { ShoppingBag, Handshake, BookOpen, Heart, GraduationCap, ChevronDown, ChevronRight, Lightbulb, CheckCircle, AlertCircle, Flame } from 'lucide-react'
 
 interface MonetizationCardProps {
   strategy: MonetizationStrategy
@@ -17,34 +17,38 @@ export const MonetizationCard: React.FC<MonetizationCardProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false)
 
-  // Get emoji and color for difficulty
+  if (!strategy) {
+    return null
+  }
+
+  // Get difficulty info and color
   const getDifficultyInfo = (difficulty: string) => {
     switch (difficulty) {
       case 'easy':
-        return { emoji: '<CheckCircle size={20} className="text-green-500" />', color: 'success', text: 'Easy - Start ASAP' }
+        return { icon: 'check', color: 'success', text: 'Easy - Start ASAP' }
       case 'medium':
-        return { emoji: '<AlertCircle size={20} className="text-yellow-500" />', color: 'warning', text: 'Medium - 2-3 month prep' }
+        return { icon: 'alert', color: 'warning', text: 'Medium - 2-3 month prep' }
       case 'hard':
-        return { emoji: '🔥', color: 'error', text: 'Hard - Long-term investment' }
+        return { icon: 'fire', color: 'error', text: 'Hard - Long-term investment' }
       default:
-        return { emoji: '?', color: 'default', text: 'Unknown' }
+        return { icon: 'help', color: 'default', text: 'Unknown' }
     }
   }
 
   const diffInfo = getDifficultyInfo(strategy.difficulty)
 
   // Get emoji for method
-  const getMethodEmoji = () => {
-    if (strategy.method.includes('Affiliate')) return <ShoppingBag size={24} className="text-pink-500" />
+  const getMethodIcon = () => {
+    if (strategy.method.includes('Affiliate')) return <ShoppingBag size={32} className="text-pink-500" />
     if (strategy.method.includes('Brand') || strategy.method.includes('Sponsorship'))
-      return <Handshake size={24} className="text-blue-500" />
+      return <Handshake size={32} className="text-blue-500" />
     if (strategy.method.includes('Digital') || strategy.method.includes('Product'))
-      return <BookOpen size={24} className="text-purple-500" />
+      return <BookOpen size={32} className="text-purple-500" />
     if (strategy.method.includes('Patreon') || strategy.method.includes('Patron'))
-      return <Heart size={24} className="text-pink-500" />
+      return <Heart size={32} className="text-pink-500" />
     if (strategy.method.includes('Course') || strategy.method.includes('Training'))
-      return <GraduationCap size={24} className="text-pink-500" />
-    return <DollarSign size={20} className="text-pink-500" />
+      return <GraduationCap size={32} className="text-purple-500" />
+    return <ShoppingBag size={32} className="text-gray-500" />
   }
 
   return (
@@ -56,14 +60,16 @@ export const MonetizationCard: React.FC<MonetizationCardProps> = ({
       <CardContent>
         <div className="flex items-start gap-4">
           {/* Icon */}
-          <div className="text-3xl flex-shrink-0">{getMethodEmoji()}</div>
+          <div className="flex-shrink-0">
+            {getMethodIcon()}
+          </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
             <CardTitle className="mb-2">{strategy.method}</CardTitle>
 
             <div className="flex items-center gap-2 mb-3 flex-wrap">
-              <Badge variant={diffInfo.color as never}>
+              <Badge variant={diffInfo.color as any}>
                 {diffInfo.emoji} {diffInfo.text}
               </Badge>
               <span className="text-sm font-semibold text-green-600">
@@ -83,10 +89,10 @@ export const MonetizationCard: React.FC<MonetizationCardProps> = ({
                 <p className="text-xs text-gray-600">Niche Fit</p>
                 <p className="font-semibold text-gray-900">
                   {strategy.difficulty === 'easy'
-                    ? <><CheckCircle size={20} className="text-green-500" /> Perfect</>
+                    ? '✅ Perfect'
                     : strategy.difficulty === 'medium'
                       ? '👍 Good'
-                      : <> <Pin size={20} className="text-pink-500" />  Consider</>}
+                      : '📌 Consider'}
                 </p>
               </div>
             </div>
@@ -116,9 +122,10 @@ export const MonetizationCard: React.FC<MonetizationCardProps> = ({
                   ))}
                 </ol>
 
-                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded">
+                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded flex items-start gap-2">
+                  <Lightbulb size={16} className="text-green-900 flex-shrink-0 mt-0.5" />
                   <p className="text-xs text-green-900">
-                    <Lightbulb size={20} className="text-pink-500" /> <span className="font-semibold">Action:</span> Set a reminder to revisit this in 2 weeks. Many creators miss opportunities by not taking immediate action.
+                    <span className="font-semibold">Action:</span> Set a reminder to revisit this in 2 weeks. Many creators miss opportunities by not taking immediate action.
                   </p>
                 </div>
               </div>
@@ -133,7 +140,7 @@ export const MonetizationCard: React.FC<MonetizationCardProps> = ({
 
           {/* Expand indicator */}
           <div className="text-lg text-pink-400 flex-shrink-0 mt-1">
-            {isExpanded ? <ChevronDown size={20} className="text-pink-500" /> : <ChevronRight size={20} className="text-pink-500" />}
+            {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
           </div>
         </div>
       </CardContent>

@@ -4,7 +4,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardTitle, CardHeader } from '@/components/ui/Card'
-import { Sparkles, Lightbulb, Smartphone, Volume2, Zap } from 'lucide-react'
+import { Video, Zap, Sparkles, Volume2, Smartphone, Lightbulb } from 'lucide-react'
 
 interface QualityMetrics {
   hookStrength: number
@@ -18,11 +18,17 @@ interface QualityBreakdownBarsProps {
   metrics: QualityMetrics
 }
 
-const MetricBar: React.FC<{
-  label: string
-  value: number
-  icon: React.ReactNode;
-}> = ({ label, value, icon }) => {
+  interface MetricBarProps {
+    label: string
+    value: number
+    icon: React.ReactNode
+  }
+
+const MetricBar: React.FC<MetricBarProps> = ({
+  label,
+  value,
+  icon,
+}) => {
   const [displayValue, setDisplayValue] = useState(0)
 
   // Animate bar fill
@@ -52,7 +58,7 @@ const MetricBar: React.FC<{
     <div className="space-y-2 mb-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-lg">{icon}</span>
+          {icon}
           <span className="font-semibold text-gray-900">{label}</span>
         </div>
         <span className="text-sm font-bold text-gray-700">
@@ -88,6 +94,11 @@ const MetricBar: React.FC<{
 export const QualityBreakdownBars: React.FC<QualityBreakdownBarsProps> = ({
   metrics,
 }) => {
+  // Handle undefined metrics
+  if (!metrics) {
+    return null
+  }
+
   const average = Math.round(
     (metrics.hookStrength +
       metrics.pacing +
@@ -96,6 +107,8 @@ export const QualityBreakdownBars: React.FC<QualityBreakdownBarsProps> = ({
       metrics.callToAction) /
       5
   )
+
+
 
   return (
     <Card>
@@ -111,7 +124,7 @@ export const QualityBreakdownBars: React.FC<QualityBreakdownBarsProps> = ({
           <MetricBar
             label="Hook Strength"
             value={metrics.hookStrength}
-            icon="🎬"
+            icon={<Video size={20} className="text-pink-500" />}
           />
           <MetricBar label="Pacing" value={metrics.pacing} icon={<Zap size={20} className="text-pink-500" />} />
           <MetricBar
@@ -132,9 +145,10 @@ export const QualityBreakdownBars: React.FC<QualityBreakdownBarsProps> = ({
         </div>
 
         {/* Summary */}
-        <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
+          <Lightbulb size={18} className="text-blue-900 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-blue-900">
-            <Lightbulb size={20} className="text-pink-500" /> <span className="font-semibold">Pro Tip:</span> Focus on improving your lowest scores first. Even small changes in audio quality or hook strength can increase virality by 15-25%.
+            <span className="font-semibold">Pro Tip:</span> Focus on improving your lowest scores first. Even small changes in audio quality or hook strength can increase virality by 15-25%.
           </p>
         </div>
       </CardContent>

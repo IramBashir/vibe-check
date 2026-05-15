@@ -46,6 +46,7 @@ export class GroqService {
       const responseText = message.choices[0]?.message?.content || '';
       const analysis = this.parseAnalysisResponse(responseText, videoSummary);
 
+      console.log('analysis', analysis);
       return analysis;
     } catch (error) {
       throw new BadRequestException(`Groq API error: ${error.message}`);

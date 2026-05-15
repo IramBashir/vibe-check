@@ -1,17 +1,23 @@
 // src/main.ts
 
-import { NestFactory } from '@nestjs/core'
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
-import { AppModule } from './app.module'
+import { NestFactory } from '@nestjs/core';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create(AppModule);
 
   // Enable CORS for frontend
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3000',
+    ],
     credentials: true,
-  })
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
 
   // Swagger Documentation Setup
   const config = new DocumentBuilder()
@@ -23,19 +29,19 @@ async function bootstrap() {
     .addTag('Video Analysis', 'Upload and analyze videos')
     .addServer('http://localhost:3001', 'Local development')
     .addServer('https://api.vibecheck.app', 'Production')
-    .build()
+    .build();
 
-  const document = SwaggerModule.createDocument(app, config)
+  const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
     },
-  })
+  });
 
-  const PORT = process.env.PORT || 3001
-  await app.listen(PORT)
-  console.log(`✓ Vibe Check API running on http://localhost:${PORT}`)
-  console.log(`✓ Swagger docs available at http://localhost:${PORT}/api/docs`)
+  const PORT = process.env.PORT || 3001;
+  await app.listen(PORT);
+  console.log(`✓ Vibe Check API running on http://localhost:${PORT}`);
+  console.log(`✓ Swagger docs available at http://localhost:${PORT}/api/docs`);
 }
 
-bootstrap()
+bootstrap();

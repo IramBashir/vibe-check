@@ -2,19 +2,22 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { UploadZone } from '@/components/UploadZone'
 import { Card, CardContent, CardTitle, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { validateVideoUrl } from '@/lib/utils'
+import { useVideoAnalysis } from '@/hooks/useVideoAnalysis'
 import type { VideoInput } from '@/types'
-import { Video, Link2, CheckCircle, XCircle, Lightbulb, Sparkles } from 'lucide-react'
+import { ArrowLeft, Check, AlertCircle, Lightbulb } from 'lucide-react'
 
 export default function UploadPage() {
+  const router = useRouter()
+  const { analyzeVideo, analyzeFromUrl, loading: isAnalyzing, error: apiError } = useVideoAnalysis()
   const [videoData, setVideoData] = useState<VideoInput>({})
   const [activeTab, setActiveTab] = useState<'upload' | 'link'>('upload')
   const [url, setUrl] = useState('')
   const [urlError, setUrlError] = useState<string | null>(null)
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
 
   const handleFileSelect = (file: File) => {
     setVideoData({ ...videoData, file })
@@ -40,15 +43,30 @@ export default function UploadPage() {
       return
     }
 
-    setIsAnalyzing(true)
-    // TODO: Call backend API
-    console.log('Analyzing video:', videoData)
-    // Redirect to results page (we'll implement this in Phase 2)
-    setTimeout(() => {
-      // Navigate to results page
-        window.location.href = '/results'
-        setIsAnalyzing(false)
-    }, 2000)
+    try {
+      if (videoData.file) {
+        // Analyze uploaded file
+        await analyzeVideo(videoData.file, {
+          niche: videoData.niche,
+          followerCount: videoData.followerCount,
+          engagementRate: videoData.engagementRate,
+        })
+      } else if (videoData.url) {
+        // Analyze from URL
+        await analyzeFromUrl(videoData.url, {
+          niche: videoData.niche,
+          followerCount: videoData.followerCount,
+          engagementRate: videoData.engagementRate,
+        })
+      }
+
+      // Redirect to results page after successful analysis
+      // Wait a bit for localStorage to be written
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      router.push('/results')
+    } catch (error) {
+      console.error('Analysis failed:', error)
+    }
   }
 
   return (
@@ -56,8 +74,9 @@ export default function UploadPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <Link href="/" className="text-sm text-gray-600 hover:text-pink-600 mb-4 inline-block">
-            ← Back to home
+          <Link href="/" className="text-sm text-gray-600 hover:text-pink-600 mb-4 inline-flex items-center gap-2">
+            <ArrowLeft size={16} />
+            Back to home
           </Link>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
             Analyze Your Video
@@ -80,7 +99,7 @@ export default function UploadPage() {
                     : 'bg-pink-100 text-pink-700 hover:bg-pink-200'
                 }`}
               >
-                <Video size={48} className="text-pink-500" /> Upload Video
+                📹 Upload Video
               </button>
               <button
                 onClick={() => setActiveTab('link')}
@@ -90,7 +109,7 @@ export default function UploadPage() {
                     : 'bg-pink-100 text-pink-700 hover:bg-pink-200'
                 }`}
               >
-                <Link2 size={20} className="text-pink-500" /> Paste Link
+                🔗 Paste Link
               </button>
             </div>
 
@@ -102,7 +121,7 @@ export default function UploadPage() {
                   <Card className="mt-6 bg-green-50 border-green-200">
                     <CardContent>
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl"><CheckCircle size={20} className="text-green-500" /></span>
+                        <Check size={24} className="text-green-600 flex-shrink-0" />
                         <div>
                           <p className="font-semibold text-green-900">{videoData.file.name}</p>
                           <p className="text-sm text-green-700">
@@ -140,15 +159,19 @@ export default function UploadPage() {
                     </Button>
 
                     {urlError && (
-                      <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="text-red-700 text-sm"><XCircle size={20} className="text-red-500" /> {urlError}</p>
+                      <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+                        <AlertCircle size={18} className="text-red-600 flex-shrink-0 mt-0.5" />
+                        <p className="text-red-700 text-sm">{urlError}</p>
                       </div>
                     )}
 
                     {videoData.url && (
-                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <p className="text-green-700 text-sm"><CheckCircle size={20} className="text-green-500" /> Link accepted</p>
-                        <p className="text-xs text-green-600 mt-1 truncate">{videoData.url}</p>
+                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
+                        <Check size={18} className="text-green-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-green-700 text-sm">Link accepted</p>
+                          <p className="text-xs text-green-600 mt-1 truncate">{videoData.url}</p>
+                        </div>
                       </div>
                     )}
                   </CardContent>
@@ -204,9 +227,10 @@ export default function UploadPage() {
                   />
                 </div>
 
-                <div className="bg-purple-50 p-3 rounded-lg">
+                <div className="bg-purple-50 p-3 rounded-lg flex items-start gap-3">
+                  <Lightbulb size={18} className="text-purple-700 flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-gray-600">
-                    <Lightbulb size={20} className="text-pink-500" /> <span className="font-semibold">Tip:</span> More details = more accurate analysis
+                    <span className="font-semibold">Tip:</span> More details = more accurate analysis
                   </p>
                 </div>
               </CardContent>
@@ -223,9 +247,20 @@ export default function UploadPage() {
             disabled={!videoData.file && !videoData.url}
             className="w-full sm:w-auto"
           >
-            {isAnalyzing ? '🔄 Analyzing...' : <> <Sparkles size={20} className="text-white-500" /> Analyze Video</>}
+            {isAnalyzing ? '🔄 Analyzing...' : '✨ Analyze Video'}
           </Button>
         </div>
+
+        {/* Error Display */}
+        {apiError && (
+          <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+            <AlertCircle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-red-700 font-medium">Analysis failed</p>
+              <p className="text-red-600 text-sm mt-1">{apiError}</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
